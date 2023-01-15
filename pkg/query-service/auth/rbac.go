@@ -16,6 +16,7 @@ type Group struct {
 }
 
 type AuthCache struct {
+	OwnerGroupId  string
 	AdminGroupId  string
 	EditorGroupId string
 	ViewerGroupId string
@@ -35,6 +36,9 @@ func InitAuthCache(ctx context.Context) error {
 		return nil
 	}
 
+	if err := setGroupId(constants.OwnerGroup, &AuthCacheObj.OwnerGroupId); err != nil {
+		return err
+	}
 	if err := setGroupId(constants.AdminGroup, &AuthCacheObj.AdminGroupId); err != nil {
 		return err
 	}
@@ -65,7 +69,10 @@ func IsSelfAccessRequest(user *model.UserPayload, id string) bool { return user.
 
 func IsViewer(user *model.UserPayload) bool { return user.GroupId == AuthCacheObj.ViewerGroupId }
 func IsEditor(user *model.UserPayload) bool { return user.GroupId == AuthCacheObj.EditorGroupId }
-func IsAdmin(user *model.UserPayload) bool  { return user.GroupId == AuthCacheObj.AdminGroupId }
+func IsAdmin(user *model.UserPayload) bool {
+	return user.GroupId == AuthCacheObj.AdminGroupId || user.GroupId == AuthCacheObj.OwnerGroupId
+}
+func IsOwner(user *model.UserPayload) bool { return user.GroupId == AuthCacheObj.OwnerGroupId }
 
 func ValidatePassword(password string) error {
 	if len(password) < minimumPasswordLength {
